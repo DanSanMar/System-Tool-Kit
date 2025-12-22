@@ -2,27 +2,24 @@
 
 **System Tool Kit** es una sencilla herramienta de gestión, mantenimiento y control para sistemas basados en Linux (Debian/Ubuntu). Proporciona una interfaz visual intuitiva en la terminal para gestionar el hardware y la limpieza del sistema.
 
-## 📋 Detalles de Funcionalidades
+✨ Características Principales
 
-### 🧹 Súper Limpieza y Gestión de "Basura"
-El script incluye un módulo de limpieza profunda que actúa sobre:
-* **Caché de Paquetes:** Limpia `/var/cache/apt/archives` para liberar espacio de instaladores antiguos.
-* **Residuos de Sistema:** Ejecuta `autoremove` para eliminar dependencias que ya no se usan.
-* **Papelera de Usuarios:** Localiza y vacía automáticamente las carpetas de basura en `/home/*/.local/share/Trash/*`.
-* **Reparación:** Intenta arreglar paquetes rotos antes de la limpieza con `apt install -f`.
+🔄 Actualización Inteligente: Ejecuta update, upgrade y autoremove de forma silenciosa con indicadores visuales de progreso.
 
-### 📊 Monitor de Rendimiento en Tiempo Real 
-* **CPU:** Cálculo dinámico de carga con barra de progreso visual.
-* **RAM:** Visualización de memoria usada vs total en MB.
-* **Temperatura:** Lectura de sensores térmicos del hardware.
-* (Disponible según modelos)
+🚀 Instalador Rápido: Acceso directo a la instalación de software mediante el gestor de paquetes.
 
-### 👥 Administración de Usuarios
-* Filtrado automático de usuarios reales (UID >= 1000).
-* Creación y eliminación completa (incluyendo directorios `/home`).
+🧹 Súper Limpieza: Optimiza el espacio eliminando paquetes huérfanos, caché de apt y vaciando la papelera de todos los usuarios.
+
+👥 Gestión de Usuarios: Interfaz simplificada para listar, crear y eliminar usuarios del sistema.
+
+💾 Copias de Seguridad: Comprime y respalda tu carpeta de Documentos automáticamente en el Escritorio.
+
+📊 Monitoreo en Tiempo Real: Visualización gráfica (barras ASCII) del uso de CPU y RAM, además de temperatura y espacio en disco (disponible según modelos).
+
 
 ## ⚖️ Licencia
 Este proyecto está bajo la **Licencia MIT**. Eres libre de usarlo, modificarlo y distribuirlo siempre que se mantenga el crédito al autor original.
 
 ---
 Desarrollado por **DanSanMar** | 2025
+
