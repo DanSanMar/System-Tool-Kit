@@ -196,7 +196,10 @@ while true; do
             fi
             read -p "Pulse Enter..."
             ;;
-        7) exit 0 ;;
+        7) echo ""
+         pintar $AZUL "Gracias por usar STK, hasta pronto!!"
+        exit 0 ;;
+
         *) pintar $ROJO "Opción no válida"; sleep 1 ;;
     esac
 done
