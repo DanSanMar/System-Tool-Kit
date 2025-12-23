@@ -23,3 +23,7 @@ Este proyecto está bajo la **Licencia MIT**. Eres libre de usarlo, modificarlo 
 ---
 Desarrollado por **DanSanMar** | 2025
 
+<img width="423" height="472" alt="image" src="https://github.com/user-attachments/assets/b561b3d9-c0fa-4697-a3c2-2daee3a8d947" />
+
+
+
