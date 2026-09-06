@@ -177,18 +177,6 @@ monitor_rendimiento() {
             D_LIBRE=$(echo $DISCO_DATA | awk '{print $3}')
             D_PERC=$(echo $DISCO_DATA | awk '{print $4}' | tr -d '%')
 
-            echo -e "\e[K${AZUL_BRILLANTE}─── 💻 SISTEMA ───${RESET}"
-            echo -e "\e[K${NEGRITA}${AMARILLO}PROCESADOR:${RESET} ${BLANCO}${CPU_MODEL}${RESET}"
-            echo -e "\e[K${NEGRITA}${AMARILLO}NÚCLEOS:${RESET}    ${CIAN_BRILLANTE}${CPU_CORES}${RESET} hilos | ${NEGRITA}${AMARILLO}FREQ:${RESET} ${CIAN_BRILLANTE}${CPU_GHZ}${RESET} GHz"
-            echo -e "\e[K   ${NEGRITA}${BLANCO}CPU:${RESET}   ${CIAN_BRILLANTE}${CPU_DETAIL}${RESET}"
-            echo -e "\e[K   ${NEGRITA}${BLANCO}RAM:${RESET}   ${VERDE_BRILLANTE}${G_USED}GB${RESET} usados / ${BLANCO}${G_TOTAL}GB${RESET} total (Disp: ${AZUL_BRILLANTE}${G_DISP}GB${RESET})"
-            echo -e "\e[K   ${NEGRITA}${BLANCO}DISCO:${RESET} ${VERDE_BRILLANTE}${D_USADO}${RESET} usados / ${BLANCO}${D_TOTAL}${RESET} total (Libre: ${AZUL_BRILLANTE}${D_LIBRE}${RESET})"
-
-            obtener_resumen_inicio
-            obtener_info_arranque
-            obtener_info_red
-            obtener_info_seguridad
-
             echo -e "\e[K${AZUL_BRILLANTE}─── 📊 RENDIMIENTO EN TIEMPO REAL ───${RESET}"
             echo -ne "\e[K${NEGRITA}${VERDE_BRILLANTE} *** CARGA CPU: ${RESET}"; dibujar_barra $CPU_PERC; echo -e " -> $(interpretar $CPU_PERC 'cpu')"
             echo -ne "\e[K${NEGRITA}${AZUL_BRILLANTE} +++ USO RAM:   ${RESET}"; dibujar_barra $RAM_PERC; echo -e " -> $(interpretar $RAM_PERC 'ram')"
@@ -198,6 +186,19 @@ monitor_rendimiento() {
             fi
 
             echo -ne "\e[K${NEGRITA}${CIAN_BRILLANTE} *** USO DISCO: ${RESET}"; dibujar_barra $D_PERC; echo -e " -> $(interpretar $D_PERC 'disco')"
+            echo -e "\e[K${AZUL_BRILLANTE}─── 💻 SISTEMA ───${RESET}"
+            echo -e "\e[K${NEGRITA}${AMARILLO}PROCESADOR:${RESET} ${BLANCO}${CPU_MODEL}${RESET}"
+            echo -e "\e[K${NEGRITA}${AMARILLO}NÚCLEOS:${RESET}    ${CIAN_BRILLANTE}${CPU_CORES}${RESET} hilos | ${NEGRITA}${AMARILLO}FREQ:${RESET} ${CIAN_BRILLANTE}${CPU_GHZ}${RESET} GHz"
+            echo -e "\e[K   ${NEGRITA}${BLANCO}CPU:${RESET}   ${CIAN_BRILLANTE}${CPU_DETAIL}${RESET}"
+            echo -e "\e[K   ${NEGRITA}${BLANCO}RAM:${RESET}   ${VERDE_BRILLANTE}${G_USED}GB${RESET} usados / ${BLANCO}${G_TOTAL}GB${RESET} total (Disp: ${AZUL_BRILLANTE}${G_DISP}GB${RESET})"
+            echo -e "\e[K   ${NEGRITA}${BLANCO}DISCO:${RESET} ${VERDE_BRILLANTE}${D_USADO}${RESET} usados / ${BLANCO}${D_TOTAL}${RESET} total (Libre: ${AZUL_BRILLANTE}${D_LIBRE}${RESET})"
+            
+            obtener_resumen_inicio
+            obtener_info_arranque
+            obtener_info_red
+            obtener_info_seguridad
+
+            
 
             echo -ne "\e[J"
         )
