@@ -57,19 +57,24 @@ obtener_resumen_inicio() {
 
     local usbs=$(lsblk -o MOUNTPOINT -n 2>/dev/null | grep -c -E "^/(media|run/media|mnt)")
 
-    echo -e "\e[K   ${NEGRITA}${BLANCO}Tiempo activo:${RESET} ${CIAN_BRILLANTE}$uptime_str${RESET} | ${NEGRITA}${BLANCO}Carga media:${RESET} ${AMARILLO_BRILLANTE}$load_avg${RESET}"
-    
+    # Definir texto de servicios según el estado
+    local svcs_str=""
     if [ "$svcs_failed" -gt 0 ]; then
-        echo -e "\e[K   ${NEGRITA}${ROJO_BRILLANTE}Servicios fallidos ($svcs_failed):${RESET} ${AMARILLO_BRILLANTE}${failed_names}${RESET}"
+        svcs_str="${ROJO_BRILLANTE}Fallidos ($svcs_failed): ${AMARILLO_BRILLANTE}${failed_names}${RESET}"
     else
-        echo -e "\e[K   ${NEGRITA}${BLANCO}Estado Servicios:${RESET} ${VERDE_BRILLANTE}OK (0 fallidos)${RESET}"
+        svcs_str="${VERDE_BRILLANTE}OK (0 fallidos)${RESET}"
     fi
 
+    # Definir texto de unidades externas según el estado
+    local usbs_str=""
     if [ "$usbs" -gt 0 ]; then
-        echo -e "\e[K   ${NEGRITA}${AMARILLO_BRILLANTE}Unidades externas:${RESET} $usbs montada(s)"
+        usbs_str="${AMARILLO_BRILLANTE}$usbs montada(s)${RESET}"
     else
-        echo -e "\e[K   ${NEGRITA}${BLANCO}Unidades externas:${RESET} Ninguna"
+        usbs_str="${BLANCO}Ninguna${RESET}"
     fi
+
+    echo -e "\e[K   ${NEGRITA}${BLANCO}Tiempo activo:${RESET} ${CIAN_BRILLANTE}$uptime_str${RESET} | ${NEGRITA}${BLANCO}Carga media:${RESET} ${AMARILLO_BRILLANTE}$load_avg${RESET}"
+    echo -e "\e[K   ${NEGRITA}${BLANCO}Servicios:${RESET} $svcs_str | ${NEGRITA}${BLANCO}Unidades ext.:${RESET} $usbs_str"
 }
 
 # ==========================================
@@ -97,7 +102,7 @@ obtener_info_red() {
         status_ping="${VERDE_BRILLANTE}OK a (1.1.1.1)${RESET}"
     fi
 
-    echo -e "\e[K${AZUL_BRILLANTE}─── 🌐 TELEMETRÍA Y RED ────────────────────────────${RESET}"
+    echo -e "\e[K${AZUL_BRILLANTE}─── 🌐 TELEMETRÍA Y RED ───${RESET}"
     echo -e "\e[K   ${NEGRITA}${BLANCO}Interfaz princ.:${RESET} ${AZUL_BRILLANTE}${iface}${RESET} (${CIAN_BRILLANTE}${ip_local}${RESET})"
     echo -e "\e[K   ${NEGRITA}${BLANCO}Tráfico I/O:${RESET}     RX: ${VERDE_BRILLANTE}${rx_gb} GB${RESET} | TX: ${AMARILLO_BRILLANTE}${tx_gb} GB${RESET}"
     echo -e "\e[K   ${NEGRITA}${BLANCO}Salida a Internet:${RESET} Ping $status_ping"
@@ -172,7 +177,7 @@ monitor_rendimiento() {
             D_LIBRE=$(echo $DISCO_DATA | awk '{print $3}')
             D_PERC=$(echo $DISCO_DATA | awk '{print $4}' | tr -d '%')
 
-            echo -e "\e[K${AZUL_BRILLANTE}─── 💻 SISTEMA ─────────────────────────────────${RESET}"
+            echo -e "\e[K${AZUL_BRILLANTE}─── 💻 SISTEMA ───${RESET}"
             echo -e "\e[K${NEGRITA}${AMARILLO}PROCESADOR:${RESET} ${BLANCO}${CPU_MODEL}${RESET}"
             echo -e "\e[K${NEGRITA}${AMARILLO}NÚCLEOS:${RESET}    ${CIAN_BRILLANTE}${CPU_CORES}${RESET} hilos | ${NEGRITA}${AMARILLO}FREQ:${RESET} ${CIAN_BRILLANTE}${CPU_GHZ}${RESET} GHz"
             echo -e "\e[K   ${NEGRITA}${BLANCO}CPU:${RESET}   ${CIAN_BRILLANTE}${CPU_DETAIL}${RESET}"
@@ -180,11 +185,11 @@ monitor_rendimiento() {
             echo -e "\e[K   ${NEGRITA}${BLANCO}DISCO:${RESET} ${VERDE_BRILLANTE}${D_USADO}${RESET} usados / ${BLANCO}${D_TOTAL}${RESET} total (Libre: ${AZUL_BRILLANTE}${D_LIBRE}${RESET})"
 
             obtener_resumen_inicio
-            obtener_info_red
             obtener_info_arranque
+            obtener_info_red
             obtener_info_seguridad
 
-            echo -e "\e[K${AZUL_BRILLANTE}─── 📊 RENDIMIENTO EN TIEMPO REAL ─────────────────────────────${RESET}"
+            echo -e "\e[K${AZUL_BRILLANTE}─── 📊 RENDIMIENTO EN TIEMPO REAL ───${RESET}"
             echo -ne "\e[K${NEGRITA}${VERDE_BRILLANTE} *** CARGA CPU: ${RESET}"; dibujar_barra $CPU_PERC; echo -e " -> $(interpretar $CPU_PERC 'cpu')"
             echo -ne "\e[K${NEGRITA}${AZUL_BRILLANTE} +++ USO RAM:   ${RESET}"; dibujar_barra $RAM_PERC; echo -e " -> $(interpretar $RAM_PERC 'ram')"
             
@@ -207,20 +212,28 @@ obtener_info_arranque() {
     local boot_sec=0
     if command -v systemd-analyze &>/dev/null; then
         boot_time=$(systemd-analyze 2>/dev/null | head -n 1 | awk -F'=' '{print $2}' | xargs)
-        boot_sec=$(echo "$boot_time" | awk '{print $NF}' | tr -d 's' | tr -d 'ms')
+        # Extrae de forma limpia solo los segundos/milisegundos totales
+        boot_sec=$(echo "$boot_time" | grep -oP '\d+(\.\d+)?(?=s)' | tail -n1)
     fi
 
     local last_boot=$(uptime -s 2>/dev/null || who -b 2>/dev/null | awk '{print $3,$4}')
     local media_str="N/A"
     local comparativa=""
     
-    # Recopilar arranques anteriores iterando booteo a booteo
+    # Recopilar tiempo de arranque de los últimos registros disponibles en el Journal
     if command -v journalctl &>/dev/null && [ -n "$boot_sec" ]; then
         local suma=0
         local count=0
         
         for i in {0..4}; do
-            local t=$(journalctl -b -$i _COMM=systemd-analyze 2>/dev/null | grep -oP '=\s*\K[0-9.]+(?=s)' | head -n 1)
+            # Busca la línea nativa "Startup finished in..." que systemd escribe en cada boot
+            local t=$(journalctl -b -$i -u systemd-logind.service 2>/dev/null | grep -oP 'Startup finished in .+= \K[0-9.]+(?=s)' | head -n 1)
+            
+            # Fallback genérico por si no encuentra el servicio específico
+            if [ -z "$t" ]; then
+                t=$(journalctl -b -$i 2>/dev/null | grep -oP 'Startup finished in .+= \K[0-9.]+(?=s)' | head -n 1)
+            fi
+
             if [ -n "$t" ]; then
                 suma=$(awk "BEGIN {print $suma + $t}")
                 count=$((count + 1))
@@ -245,8 +258,9 @@ obtener_info_arranque() {
         fi
     fi
 
-    echo -e "\e[K${AZUL_BRILLANTE}─── 🚀 ARRANQUE ──────────────────────────────────${RESET}"
-    echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Último arranque:${RESET} ${BLANCO}$last_boot${RESET} | ${NEGRITA}${AZUL_BRILLANTE}Tiempo:${RESET} ${BLANCO}${boot_time:-"N/A"}${RESET}${comparativa}"
+    echo -e "\e[K${AZUL_BRILLANTE}─── 🚀 ARRANQUE ───${RESET}"
+    echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Último arranque:${RESET} ${BLANCO}$last_boot${RESET}"  
+    echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Tiempo:${RESET} ${BLANCO}${boot_time:-"N/A"}${RESET}${comparativa}"
     echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Media de arranque:${RESET} ${BLANCO}$media_str${RESET}"
 }
 
@@ -271,7 +285,7 @@ obtener_info_seguridad() {
 
     SUDO_USERS=$(ps aux | grep -v grep | grep -c "sudo")
     
-    echo -e "\e[K${AZUL_BRILLANTE}─── 🛡️ SEGURIDAD ──────────────────────────────────${RESET}"
+    echo -e "\e[K${AZUL_BRILLANTE}─── 🛡️ SEGURIDAD ───${RESET}"
     echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Firewall (UFW):${RESET} $UFW_PRINT | ${NEGRITA}${AZUL_BRILLANTE}Puertos escuchando:${RESET} ${BLANCO}$LISTEN_PORTS${RESET}"
     echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Conexiones SSH (p22):${RESET} ${BLANCO}$SSH_SESSIONS${RESET} | ${NEGRITA}${AZUL_BRILLANTE}Procesos Sudo activos:${RESET} ${BLANCO}$SUDO_USERS${RESET}"
     echo -e "\e[K   ${NEGRITA}${AZUL_BRILLANTE}Shells Sospechosas:${RESET} $REV_PRINT"
